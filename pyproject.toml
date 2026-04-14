@@ -13,7 +13,8 @@ dependencies = [
     "rich>=13.9.0",           # Terminal UI
     "psutil>=6.1.0",          # Resource Guard (TIR)
     "instructor>=1.6.0",      # Structured Outputs
-    "networkx>=3.4.0"         # Graph Analysis for OMEGA
+    "networkx>=3.4.0",        # Graph Analysis for OMEGA
+    "google-genai>=1.0.0"     # LLM Intelligence for ALPHA
 ]
 
 [tool.setuptools.packages.find]

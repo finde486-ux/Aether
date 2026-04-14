@@ -8,8 +8,11 @@ from aether.memory.graphiti_v2 import TemporalMemory
 from aether.transport.mcp_bridge import MCPBridge
 from aether.memory.synthesis import MemorySynthesizer
 
+from aether.agents.alpha.base import AlphaAgent
+
 # Initialize shared resources
 omega_eval = OmegaEvaluator()
+alpha_agent = AlphaAgent()
 alpha_opt = AlphaOptimizer()
 temporal_mem = TemporalMemory()
 
@@ -23,6 +26,14 @@ mcp_bridge = AetherBridge(shadow_mode=True)
 async def alpha_node(state: AetherState):
     """Agent ALPHA: Proposes engineering/command changes and system optimizations."""
     print(f"--- ALPHA (Iteration {state['iteration_count']}) ---")
+
+    # Use LLM-driven Alpha if configured
+    if alpha_agent.client:
+        proposal = await alpha_agent.propose(state["intent"], state["temporal_context"])
+        return {
+            "alpha_proposal": proposal,
+            "iteration_count": state["iteration_count"] + 1
+        }
 
     if "Optimization" in state["intent"]:
         # Phase 5: Autonomous Optimization logic

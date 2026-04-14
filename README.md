@@ -28,10 +28,33 @@ pip install -r requirements.txt
 ```
 
 #### 3. Configuration
-Set your Google API Key as an environment variable:
+Set your chosen AI provider and API key as environment variables:
+
+**Google (Default)**
 ```bash
-export GOOGLE_API_KEY="your-api-key-here"
+export AETHER_PROVIDER="google"
+export GOOGLE_API_KEY="your-key"
 ```
+
+**OpenAI**
+```bash
+export AETHER_PROVIDER="openai"
+export OPENAI_API_KEY="your-key"
+```
+
+**Anthropic**
+```bash
+export AETHER_PROVIDER="anthropic"
+export ANTHROPIC_API_KEY="your-key"
+```
+
+**Local (Ollama)**
+```bash
+export AETHER_PROVIDER="ollama"
+export OLLAMA_BASE_URL="http://localhost:11434"
+```
+
+*Supported Providers: google, openai, anthropic, mistral, ollama, minimax, nvidia, glm.*
 
 #### 4. Running the Dashboard
 Launch the AETHER 'Autonomous Watchdog' interface:

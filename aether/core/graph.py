@@ -19,7 +19,9 @@ temporal_mem = TemporalMemory()
 class AetherBridge(MCPBridge):
     async def audit_command(self, command: str, context: dict) -> bool:
         report = await omega_eval.audit(command)
-        return report["status"] == "SAFE"
+        # Fix: High-impact commands (AWAITING_SIG) are authorized but paused,
+        # not security violations.
+        return report["status"] in ["SAFE", "AWAITING_SIG"]
 
 mcp_bridge = AetherBridge(shadow_mode=True)
 
@@ -28,7 +30,7 @@ async def alpha_node(state: AetherState):
     print(f"--- ALPHA (Iteration {state['iteration_count']}) ---")
 
     # Use LLM-driven Alpha if configured
-    if alpha_agent.client:
+    if alpha_agent.model:
         proposal = await alpha_agent.propose(state["intent"], state["temporal_context"])
         return {
             "alpha_proposal": proposal,

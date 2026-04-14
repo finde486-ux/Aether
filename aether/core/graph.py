@@ -55,11 +55,32 @@ async def outcome_node(state: AetherState):
     return {"convergence_score": score, "strategy_pivot": state["system_health"].get("trigger_pivot", False)}
 
 async def execute_node(state: AetherState):
+    """The 'Black-Box' Recorder: Finalize Forensic trace reporting."""
     print("--- EXECUTE: Invoking MCP Bridge ---")
     mcp_bridge.shadow_mode = state.get("shadow_mode", True)
     cmd = state["alpha_proposal"].get("cmd")
+
+    # Execute with pre/post forensic snapshots
     result = await mcp_bridge.execute_command(cmd, {"state": "active"})
-    await temporal_mem.record_event("EXECUTION_COMPLETE", {"cmd": cmd, "result": result}, "SUCCESS" if result["status"] == "success" else "FAILURE")
+
+    # Generate trace_report.json (Trace Snapshot)
+    trace_report = {
+        "intent": state["intent"],
+        "command": cmd,
+        "internal_monologue": state["alpha_proposal"].get("goal"),
+        "forensics": result.get("forensics"),
+        "outcome": result["status"]
+    }
+
+    import json
+    with open("trace_report.json", "w") as f:
+        json.dump(trace_report, f, indent=2)
+
+    await temporal_mem.record_event(
+        "EXECUTION_COMPLETE",
+        {"cmd": cmd, "result": result, "trace": trace_report},
+        "SUCCESS" if result["status"] == "success" else "FAILURE"
+    )
     return {"last_execution_output": result.get("output", result.get("message")), "terminated": True}
 
 def should_continue(state: AetherState):

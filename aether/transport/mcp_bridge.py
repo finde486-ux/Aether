@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 class MCPBridge(ABC):
     def __init__(self, shadow_mode: bool = True):
         self.shadow_mode = shadow_mode
+        self.unauthorized_attempts = 0
+        self.permissions_revoked = False
 
     @abstractmethod
     async def audit_command(self, command: str, context: Dict[str, Any]) -> bool:
@@ -23,12 +25,21 @@ class MCPBridge(ABC):
         }
 
     async def execute_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        # Zero-Trust Check
+        if self.permissions_revoked:
+            return {"status": "error", "message": "PERMISSIONS REVOKED: Security Kill-Switch active."}
+
         # 1. Forensic Pre-Snapshot
         pre_snap = await self.snapshot_system("PRE_EXECUTION")
 
         # 2. Security Gate
         is_authorized = await self.audit_command(command, context)
         if not is_authorized:
+            self.unauthorized_attempts += 1
+            if self.unauthorized_attempts >= 3:
+                self.permissions_revoked = True
+                print("--- KILL-SWITCH: Revoking terminal permissions due to multiple security violations! ---")
+
             return {
                 "status": "blocked",
                 "message": "SECURITY ALERT: Command unauthorized.",

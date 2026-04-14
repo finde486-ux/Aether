@@ -23,7 +23,7 @@ def create_dashboard(active_node: str, events: list, tension: dict) -> Layout:
         Layout(name="graphiti_log", ratio=2)
     )
 
-    layout["header"].update(Panel(f"AETHER Production Daemon | Active Node: [bold green]{active_node}[/bold green]", title="System Control"))
+    layout["header"].update(Panel(f"AETHER Autonomous Watchdog | Active Node: [bold green]{active_node}[/bold green]", title="System Control"))
 
     color = "red" if tension["is_critical"] else "yellow" if tension["tension_score"] > 0.8 else "green"
     layout["footer"].update(Panel(f"System Tension: [{color}]{tension['tension_score']}[/{color}] | RAM: {tension['ram_used_gb']}GB ({tension['ram_percent']}%)", title="TIR Resource Guard"))

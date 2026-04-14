@@ -9,10 +9,15 @@ class OutcomeEngine:
             return 0.0
 
         last_audit = state["adversarial_report"][-1]
-        # Convergence logic: If OMEGA says SAFE, we are converging.
-        if last_audit.get("status") == "SAFE":
+
+        # Simulation logic: cat usually isn't enough to "repair"
+        cmd = state["alpha_proposal"].get("cmd", "")
+        if "fixed" in cmd or "bak" in cmd:
             return 1.0
-        return 0.5
+
+        if last_audit.get("status") == "SAFE":
+            return 0.5 # Partial convergence
+        return 0.0
 
     @staticmethod
     def should_pivot(state: AetherState) -> bool:

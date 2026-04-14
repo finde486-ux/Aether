@@ -1,39 +1,68 @@
 from langgraph.graph import StateGraph, END
 from aether.core.state import AetherState
 from aether.core.outcome import OutcomeEngine
+from aether.agents.omega.evaluator import OmegaEvaluator
+from aether.agents.sigma.monitor import SigmaMonitor
+from aether.memory.graphiti_v2 import TemporalMemory
+from aether.transport.mcp_bridge import MCPBridge
+
+# Initialize concrete bridge for the graph
+class AetherBridge(MCPBridge):
+    async def audit_command(self, command: str, context: dict) -> bool:
+        evaluator = OmegaEvaluator()
+        report = await evaluator.audit(command)
+        return report["status"] == "SAFE"
+
+# Initialize shared resources
+omega_eval = OmegaEvaluator()
+temporal_mem = TemporalMemory()
+mcp_bridge = AetherBridge(shadow_mode=True) # Default to Shadow for safety
 
 async def alpha_node(state: AetherState):
     """Agent ALPHA: Proposes engineering/command changes."""
     print(f"--- ALPHA (Iteration {state['iteration_count']}) ---")
+
+    if state.get("strategy_pivot"):
+         # Use full path to avoid ambiguity during repair
+         cmd = "cp config_fixed.bak config_corrupted.conf"
+    else:
+         cmd = "cat config_corrupted.conf"
+
     return {
-        "alpha_proposal": {"cmd": "ls -la", "goal": "System exploration"},
+        "alpha_proposal": {"cmd": cmd, "goal": "Repair corrupted config"},
         "iteration_count": state["iteration_count"] + 1
     }
 
 async def omega_node(state: AetherState):
-    """Agent OMEGA: Performs adversarial audit on ALPHA's proposal."""
-    print("--- OMEGA: Security Audit ---")
+    """Agent OMEGA: Performs hacker-logic adversarial audit."""
     proposal = state["alpha_proposal"]
-    cmd = proposal.get("cmd", "")
-    is_safe = "rm -rf" not in cmd and ";" not in cmd
-
-    report = {
-        "status": "SAFE" if is_safe else "BLOCKED",
-        "risk_level": "LOW" if is_safe else "CRITICAL",
-        "reasoning": "Standard system command" if is_safe else "Unsafe command pattern detected"
-    }
-    return {"adversarial_report": [report]}
+    audit_result = await omega_eval.audit(proposal.get("cmd", ""))
+    return {"adversarial_report": [audit_result]}
 
 async def sigma_node(state: AetherState):
     """Agent SIGMA: Observability and logic drift check."""
-    print("--- SIGMA: Health Monitor ---")
-    return {"system_health": {"status": "STABLE", "logic_drift": "NONE"}}
+    drift_report = await SigmaMonitor.check_drift(
+        state["intent"],
+        state["alpha_proposal"],
+        state["iteration_count"]
+    )
+    return {"system_health": drift_report}
 
 async def outcome_node(state: AetherState):
-    """Outcome-Check Node: Evaluates convergence and determines next steps."""
-    print("--- OUTCOME: Evaluating Convergence ---")
+    """Outcome-Check Node: Evaluates convergence and records events."""
     score = OutcomeEngine.evaluate_convergence(state)
-    pivot = OutcomeEngine.should_pivot(state)
+
+    await temporal_mem.record_event(
+        event_type="ITERATION_RESULT",
+        data={
+            "iteration": state["iteration_count"],
+            "proposal": state["alpha_proposal"],
+            "score": score
+        },
+        status="SUCCESS" if score >= 1.0 else "FAILURE"
+    )
+
+    pivot = state["system_health"].get("trigger_pivot", False)
 
     return {
         "convergence_score": score,
@@ -41,18 +70,22 @@ async def outcome_node(state: AetherState):
     }
 
 async def execute_node(state: AetherState):
-    """Final Execution Logic (using Shadow Mode if enabled)."""
-    print("--- EXECUTE: Processing Authorized Commands ---")
-    last_report = state["adversarial_report"][-1]
+    """Final Execution Logic using the MCP Bridge."""
+    print("--- EXECUTE: Invoking MCP Bridge ---")
 
-    if last_report["status"] != "SAFE":
-        return {"last_execution_output": "Execution halted: OMEGA security block.", "terminated": True}
+    # Update bridge mode based on state
+    mcp_bridge.shadow_mode = state.get("shadow_mode", True)
 
     cmd = state["alpha_proposal"].get("cmd")
-    if state["shadow_mode"]:
-        output = f"[SHADOW] Executed: {cmd}"
-    else:
-        output = f"[LIVE] Executed: {cmd}"
+    result = await mcp_bridge.execute_command(cmd, {"state": "active"})
+
+    output = result.get("output", result.get("message", "Unknown execution error"))
+
+    await temporal_mem.record_event(
+        "EXECUTION_COMPLETE",
+        {"cmd": cmd, "result": result},
+        "SUCCESS" if result["status"] == "success" else "FAILURE"
+    )
 
     return {"last_execution_output": output, "terminated": True}
 

@@ -1,0 +1,20 @@
+{
+  "intent": "Scan for large files in /tmp and clear them to save space",
+  "command": "cp config_fixed.bak config_corrupted.conf",
+  "internal_monologue": "Repair config",
+  "forensics": {
+    "pre": {
+      "timestamp": "2026-04-14T02:00:00Z",
+      "context": "PRE_EXECUTION",
+      "status_code": 0,
+      "forensic_hash": "sha256:abc123forensics"
+    },
+    "post": {
+      "timestamp": "2026-04-14T02:00:00Z",
+      "context": "POST_EXECUTION",
+      "status_code": 0,
+      "forensic_hash": "sha256:abc123forensics"
+    }
+  },
+  "outcome": "success"
+}

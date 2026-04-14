@@ -3,12 +3,14 @@ from aether.core.state import AetherState
 from aether.core.outcome import OutcomeEngine
 from aether.agents.omega.evaluator import OmegaEvaluator
 from aether.agents.sigma.monitor import SigmaMonitor
+from aether.agents.alpha.optimizer import AlphaOptimizer
 from aether.memory.graphiti_v2 import TemporalMemory
 from aether.transport.mcp_bridge import MCPBridge
 from aether.memory.synthesis import MemorySynthesizer
 
 # Initialize shared resources
 omega_eval = OmegaEvaluator()
+alpha_opt = AlphaOptimizer()
 temporal_mem = TemporalMemory()
 
 class AetherBridge(MCPBridge):
@@ -19,7 +21,23 @@ class AetherBridge(MCPBridge):
 mcp_bridge = AetherBridge(shadow_mode=True)
 
 async def alpha_node(state: AetherState):
+    """Agent ALPHA: Proposes engineering/command changes and system optimizations."""
     print(f"--- ALPHA (Iteration {state['iteration_count']}) ---")
+
+    if "Optimization" in state["intent"]:
+        # Phase 5: Autonomous Optimization logic
+        issues = await alpha_opt.scan_inefficiencies()
+        current_issue = issues[0] # Propose fix for first inefficiency
+        return {
+            "alpha_proposal": {
+                "cmd": current_issue["repair_cmd"],
+                "goal": f"Optimization: {current_issue['target']}",
+                "monologue": current_issue["monologue"],
+                "is_batch": True
+            },
+            "iteration_count": state["iteration_count"] + 1
+        }
+
     cmd = "cat config_corrupted.conf" if not state.get("strategy_pivot") else "cp config_fixed.bak config_corrupted.conf"
     return {
         "alpha_proposal": {"cmd": cmd, "goal": "Repair config"},
@@ -50,8 +68,16 @@ async def condense_node(state: AetherState):
     return {}
 
 async def outcome_node(state: AetherState):
+    """Outcome-Check Node: Handles Batch Optimization and Multi-Sig pausing."""
     score = OutcomeEngine.evaluate_convergence(state)
     await temporal_mem.record_event("ITERATION_RESULT", {"proposal": state["alpha_proposal"], "score": score}, "SUCCESS" if score >= 1.0 else "FAILURE")
+
+    # Phase 5: Multi-Sig pause for Batch Optimization
+    if state["alpha_proposal"].get("is_batch") and score >= 1.0:
+        print("--- AETHER: Batch Optimization Proposal generated. Awaiting Multi-Sig confirmation (Y/N) ---")
+        # In a real system, this would wait for user input. We'll simulate a 'PAUSED' state.
+        return {"convergence_score": score, "terminated": False, "awaiting_user": True}
+
     return {"convergence_score": score, "strategy_pivot": state["system_health"].get("trigger_pivot", False)}
 
 async def execute_node(state: AetherState):
@@ -85,8 +111,9 @@ async def execute_node(state: AetherState):
 
 def should_continue(state: AetherState):
     if state.get("terminated"): return END
+    if state.get("awaiting_user"): return END # Wait for manual signal
     if state["convergence_score"] >= 1.0: return "execute"
-    if state["iteration_count"] > 10: return END # Increased for condenser test
+    if state["iteration_count"] > 10: return END
     return "alpha"
 
 workflow = StateGraph(AetherState)

@@ -12,7 +12,7 @@ class OutcomeEngine:
 
         # Simulation logic: cat usually isn't enough to "repair"
         cmd = state["alpha_proposal"].get("cmd", "")
-        if "fixed" in cmd or "bak" in cmd:
+        if "fixed" in cmd or "bak" in cmd or "purge" in cmd or "upgrade" in cmd or "kill" in cmd:
             return 1.0
 
         if last_audit.get("status") == "SAFE":

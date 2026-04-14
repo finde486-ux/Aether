@@ -25,3 +25,4 @@ class AetherState(TypedDict):
     strategy_pivot: bool
     convergence_score: float
     terminated: bool
+    awaiting_user: bool

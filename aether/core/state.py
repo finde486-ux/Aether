@@ -1,28 +1,27 @@
 from typing import Annotated, TypedDict, List, Dict, Any, Optional
 import operator
 
-def merge_list(left: List[Any], right: List[Any]) -> List[Any]:
+def merge_reports(left: List[Dict[str, Any]], right: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return left + right
 
 class AetherState(TypedDict):
-    # Core Intent
+    # Core Intent & Goals
     intent: str
 
-    # Temporal Context (Graphiti Nodes/Events)
-    temporal_context: Annotated[List[Dict[str, Any]], merge_list]
+    # Temporal Context (Graphiti Nodes/Knowledge)
+    temporal_context: Annotated[List[Dict[str, Any]], merge_reports]
 
-    # The Adversarial Triad Reports
+    # Adversarial Triad Data
     alpha_proposal: Dict[str, Any]
-    omega_report: Annotated[List[Dict[str, Any]], merge_list]
-    sigma_trace: Annotated[List[Dict[str, Any]], merge_list]
+    adversarial_report: Annotated[List[Dict[str, Any]], merge_reports]  # Agent OMEGA Output
+    system_health: Dict[str, Any]                                     # Agent SIGMA Output
 
-    # System & Execution
-    system_health: Dict[str, Any]
-    last_output: Optional[str]
+    # System Status & Output
+    last_execution_output: Optional[str]
+    shadow_mode: bool
 
-    # Logic Control
+    # Orchestration Control
     iteration_count: int
     strategy_pivot: bool
     convergence_score: float
-    shadow_mode: bool
     terminated: bool

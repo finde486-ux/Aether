@@ -1,24 +1,38 @@
 import asyncio
-import subprocess
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from abc import ABC, abstractmethod
 
-class MCPBridge:
+class MCPBridge(ABC):
     def __init__(self, shadow_mode: bool = True):
         self.shadow_mode = shadow_mode
 
-    async def execute(self, command: str) -> Dict[str, Any]:
-        print(f"--- MCP: Executing Command ({'SHADOW' if self.shadow_mode else 'LIVE'}) ---")
+    @abstractmethod
+    async def audit_command(self, command: str, context: Dict[str, Any]) -> bool:
+        """Mandatory security gate: Must be implemented by a concrete bridge using Agent OMEGA."""
+        pass
 
+    async def execute_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        # 1. Security Gate
+        is_authorized = await self.audit_command(command, context)
+        if not is_authorized:
+            return {
+                "status": "blocked",
+                "message": "SECURITY ALERT: Command unauthorized by Agent OMEGA audit."
+            }
+
+        # 2. Shadow Mode Logic
         if self.shadow_mode:
-            # In shadow mode, we might use a restricted shell or just dry-run
+            print(f"--- MCP [SHADOW]: Simulating command -> {command} ---")
             return {
                 "status": "success",
-                "output": f"Shadow execution of: {command}",
+                "mode": "shadow",
+                "output": f"Simulation complete for: {command}",
                 "exit_code": 0
             }
 
+        # 3. Live Execution (Sandboxed)
         try:
-            # Live execution (Sandboxed)
+            print(f"--- MCP [LIVE]: Executing command -> {command} ---")
             process = await asyncio.create_subprocess_shell(
                 command,
                 stdout=asyncio.subprocess.PIPE,
@@ -28,6 +42,7 @@ class MCPBridge:
 
             return {
                 "status": "success" if process.returncode == 0 else "error",
+                "mode": "live",
                 "output": stdout.decode().strip(),
                 "error": stderr.decode().strip(),
                 "exit_code": process.returncode
@@ -38,7 +53,3 @@ class MCPBridge:
                 "error": str(e),
                 "exit_code": -1
             }
-
-    async def snapshot(self) -> Dict[str, Any]:
-        # Capture system state snapshot
-        return {"timestamp": "2026-01-01T00:00:00Z", "context": "System Stable"}

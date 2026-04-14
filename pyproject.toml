@@ -20,7 +20,8 @@ dependencies = [
     "langchain-google-genai",
     "langchain-mistralai",
     "langchain-ollama",
-    "langchain-community"
+    "langchain-community",
+    "python-dotenv"
 ]
 
 [tool.setuptools.packages.find]

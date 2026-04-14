@@ -20,15 +20,16 @@ Project AETHER is a **full-scale autonomous world-model agent**—similar in sco
 - A Google Gemini API Key
 
 #### 2. Installation
-Clone the repository and install the dependencies:
+Clone the repository, install dependencies, and run the interactive setup:
 ```bash
 git clone https://github.com/your-repo/Aether.git
 cd Aether
 pip install -r requirements.txt
+python3 aether/config/setup.py
 ```
 
 #### 3. Configuration
-Set your chosen AI provider and API key as environment variables:
+The interactive setup will guide you through provider selection and API key configuration, saving them to a local `.env` file. You can also manually set environment variables or use CLI flags.
 
 **Google (Default)**
 ```bash
@@ -60,6 +61,11 @@ export OLLAMA_BASE_URL="http://localhost:11434"
 Launch the AETHER 'Autonomous Watchdog' interface:
 ```bash
 PYTHONPATH=. python3 aether/cmd/main.py
+```
+
+You can also override the `.env` settings using CLI flags:
+```bash
+PYTHONPATH=. python3 aether/cmd/main.py --provider anthropic --model claude-3-opus-20240229
 ```
 
 ### 🛡️ Governance & Security

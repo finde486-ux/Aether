@@ -1,7 +1,7 @@
 # Project AETHER
 ## Autonomous Engineering & Temporal Health Evaluation Resource
 
-Project AETHER is an open-source, neural-native world-model agent designed for autonomous OS governance, self-repair, and proactive security auditing. It operates as a persistent digital technician capable of infrastructure scaling and recursive self-optimization.
+Project AETHER is a **full-scale autonomous world-model agent**—similar in scope to OpenClaude or Hermes—designed for autonomous OS governance, self-repair, and proactive security auditing. It is **not just a dashboard**; the Rich interface is simply the terminal for its underlying Neural-Native engine. It operates as a persistent digital technician capable of infrastructure scaling and recursive self-optimization.
 
 ### 🚀 Key Features
 - **Self-Healing CLI**: Automatically intercepts failed manual commands and suggests fixes based on temporal knowledge history.
@@ -20,23 +20,52 @@ Project AETHER is an open-source, neural-native world-model agent designed for a
 - A Google Gemini API Key
 
 #### 2. Installation
-Clone the repository and install the dependencies:
+Clone the repository, install dependencies, and run the interactive setup:
 ```bash
 git clone https://github.com/your-repo/Aether.git
 cd Aether
 pip install -r requirements.txt
+python3 aether/config/setup.py
 ```
 
 #### 3. Configuration
-Set your Google API Key as an environment variable:
+The interactive setup will guide you through provider selection and API key configuration, saving them to a local `.env` file. You can also manually set environment variables or use CLI flags.
+
+**Google (Default)**
 ```bash
-export GOOGLE_API_KEY="your-api-key-here"
+export AETHER_PROVIDER="google"
+export GOOGLE_API_KEY="your-key"
 ```
+
+**OpenAI**
+```bash
+export AETHER_PROVIDER="openai"
+export OPENAI_API_KEY="your-key"
+```
+
+**Anthropic**
+```bash
+export AETHER_PROVIDER="anthropic"
+export ANTHROPIC_API_KEY="your-key"
+```
+
+**Local (Ollama)**
+```bash
+export AETHER_PROVIDER="ollama"
+export OLLAMA_BASE_URL="http://localhost:11434"
+```
+
+*Supported Providers: google, openai, anthropic, mistral, ollama, minimax, nvidia, glm.*
 
 #### 4. Running the Dashboard
 Launch the AETHER 'Autonomous Watchdog' interface:
 ```bash
 PYTHONPATH=. python3 aether/cmd/main.py
+```
+
+You can also override the `.env` settings using CLI flags:
+```bash
+PYTHONPATH=. python3 aether/cmd/main.py --provider anthropic --model claude-3-opus-20240229
 ```
 
 ### 🛡️ Governance & Security

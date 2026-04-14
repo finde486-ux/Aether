@@ -14,7 +14,14 @@ dependencies = [
     "psutil>=6.1.0",          # Resource Guard (TIR)
     "instructor>=1.6.0",      # Structured Outputs
     "networkx>=3.4.0",        # Graph Analysis for OMEGA
-    "google-genai>=1.0.0"     # LLM Intelligence for ALPHA
+    "google-genai>=1.0.0",    # LLM Intelligence for ALPHA
+    "langchain-openai",
+    "langchain-anthropic",
+    "langchain-google-genai",
+    "langchain-mistralai",
+    "langchain-ollama",
+    "langchain-community",
+    "python-dotenv"
 ]
 
 [tool.setuptools.packages.find]

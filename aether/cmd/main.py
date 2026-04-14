@@ -1,13 +1,16 @@
 import asyncio
+import argparse
 from rich.live import Live
 from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
 from rich.console import Console
 from datetime import datetime
-from aether.core.graph import app, temporal_mem
+from aether.core.graph import app, temporal_mem, alpha_agent
 from aether.spec.tir import ResourceGuard
+from dotenv import load_dotenv
 
+load_dotenv()
 console = Console()
 resource_guard = ResourceGuard()
 
@@ -49,7 +52,17 @@ def create_dashboard(active_node: str, events: list, tension: dict) -> Layout:
     layout["graphiti_log"].update(Panel(event_table, title="Knowledge Graph"))
     return layout
 
-async def run_dashboard():
+async def run_dashboard(provider=None, model=None):
+    # Dynamic Override
+    if provider:
+        alpha_agent.__init__(provider=provider, model_name=model)
+
+    # Neural Handshake
+    console.print(f"[cyan]AETHER: Initiating Neural Handshake with {alpha_agent.model.__class__.__name__ if alpha_agent.model else 'None'}...[/cyan]")
+    if not alpha_agent.model:
+        console.print("[red]ERROR: Model not configured. Please run 'python3 aether/config/setup.py' first.[/red]")
+        return
+
     active_node = "BOOTING"
     intent = "Autonomous System Maintenance"
 
@@ -83,4 +96,9 @@ async def run_dashboard():
             await asyncio.sleep(2)
 
 if __name__ == "__main__":
-    asyncio.run(run_dashboard())
+    parser = argparse.ArgumentParser(description="Project AETHER: Neural-Native World-Model Agent")
+    parser.add_argument("--provider", help="AI Provider (openai, anthropic, etc.)")
+    parser.add_argument("--model", help="Model Name")
+    args = parser.parse_args()
+
+    asyncio.run(run_dashboard(provider=args.provider, model=args.model))

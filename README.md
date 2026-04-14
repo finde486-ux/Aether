@@ -1,7 +1,7 @@
 # Project AETHER
 ## Autonomous Engineering & Temporal Health Evaluation Resource
 
-Project AETHER is an open-source, neural-native world-model agent designed for autonomous OS governance, self-repair, and proactive security auditing. It operates as a persistent digital technician capable of infrastructure scaling and recursive self-optimization.
+Project AETHER is a **full-scale autonomous world-model agent**—similar in scope to OpenClaude or Hermes—designed for autonomous OS governance, self-repair, and proactive security auditing. It is **not just a dashboard**; the Rich interface is simply the terminal for its underlying Neural-Native engine. It operates as a persistent digital technician capable of infrastructure scaling and recursive self-optimization.
 
 ### 🚀 Key Features
 - **Self-Healing CLI**: Automatically intercepts failed manual commands and suggests fixes based on temporal knowledge history.
